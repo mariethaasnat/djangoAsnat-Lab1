@@ -16,8 +16,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from wishlist.views import login_user, logout_user, register
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('example_app.urls')),
-    path('wishlist/', include('wishlist.urls')),
+    path('wishlist/', include('wishlist.urls')),    
 ]
