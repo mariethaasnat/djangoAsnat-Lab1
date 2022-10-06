@@ -6,23 +6,46 @@ from wishlist.models import BarangWishlist
 from django.http import HttpResponse
 from django.core import serializers
 from django.shortcuts import redirect
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import logout
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
 
 @login_required(login_url='/wishlist/login/')
 def show_wishlist (request):
     data_barang_wishlist = BarangWishlist.objects.all()
+    print(data_barang_wishlist)
     context = {
         'list_barang': data_barang_wishlist,
         'nama': request.user.username,
         'last_login': request.COOKIES.get('last_login', 'not found'),
     }
     return render(request, "wishlist.html", context)
+
+@login_required(login_url='/wishlist/login/')
+def wishlist_ajax (request):
+    context = {
+        'nama': 'Marietha Asnat',
+        'last_login': request.COOKIES['last_login'],
+    }
+    return render(request, "wishlist_ajax.html", context)
+
+@login_required(login_url='/wishlist/login/')
+@csrf_exempt
+def add_newwishlist (request):
+    if request.method == "POST":
+        nama = request.POST.get("nama")
+        harga = request.POST.get("harga")
+        deskripsi = request.POST.get("deskripsi")
+        BarangWishlist.objects.create(nama_barang=nama, harga_barang=harga, deskripsi=deskripsi)
+        return HttpResponse()
+    else:
+        print("here")
+        return redirect("wishlist:show_wishlist")
 
 def show_xml (request):
     data = BarangWishlist.objects.all()
@@ -49,7 +72,7 @@ def register (request):
     context = {'form':form}
     return render(request, 'register.html', context)
 
-def login_user(request):
+def login_user (request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -64,7 +87,7 @@ def login_user(request):
     context = {}
     return render(request, 'login.html', context)
 
-def logout_user(request):
+def logout_user (request):
     logout(request)
     response = HttpResponseRedirect(reverse('wishlist:login'))
     response.delete_cookie('last_login')
